@@ -6,12 +6,13 @@ on:
   workflow_dispatch:
 
 env:
-  ZIP_FILE: Oberjein-android-project.zip   # zip na raiz do repositório
-  PROJECT_DIR: Oberjein                    # pasta que existe dentro do zip
+  ZIP_FILE: Oberjein-android-project.zip
+  PROJECT_DIR: Oberjein
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Baixar o repositório
         uses: actions/checkout@v4
@@ -28,8 +29,11 @@ jobs:
       - name: Instalar o Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Instalar NDK e CMake
-        run: sdkmanager "cmake;3.22.1" "ndk;26.1.10909125" "platforms;android-35" "build-tools;35.0.0"
+      - name: Aceitar licenças e instalar SDKs do Android
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0" "cmake;3.22.1" "ndk;26.1.10909125"
 
       - name: Instalar o Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
@@ -38,7 +42,7 @@ jobs:
 
       - name: Compilar o APK de debug
         working-directory: extracted/${{ env.PROJECT_DIR }}
-        run: gradle assembleDebug --no-daemon --stacktrace
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Enviar o APK
         uses: actions/upload-artifact@v4
